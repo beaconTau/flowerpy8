@@ -8,7 +8,7 @@ class ClockConfig:
         self.i2c.write(0xFF, 0x00) #set to page 0
         self.page = 0
 
-    def configure(self, filename='config/Si5338-Registers.h'):    
+    def configure(self, filename='config/Si5338-Registers-250MHz.h'):    
         #
         # config procedure for Si5338. A pain in the neck!
         #

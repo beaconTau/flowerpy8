@@ -148,24 +148,47 @@ class Flower():
         full_flag = self.readRegister(self.DEV_FLOWER, 0x7)[3] & 0x1
         return full_flag
         
-    def readRam(self, dev, address_start=0, address_stop=64):
-
-        self.write(dev, [65,0,0,1]) #read RAM 0 [ch's 0 & 1]
+    def readRam(self, dev, address_start=0, address_stop=64, mode=4):
+        '''
+        mode=num channels
+        '''
+        self.write(dev, [65,0,0,1]) #read RAM 0 [ch's 0 & 1 / 0,1,2,3]
         data0=[]
         data1=[]
-        for i in range(address_start, address_stop, 1):
-            _dat0, _dat1 = self.readRamAddress(dev, i)
-            data0.extend(_dat0)
-            data1.extend(_dat1)
-        self.write(dev, [65,0,0,2]) #read RAM 1 [ch's 2 & 3]
         data2=[]
         data3=[]
-        for i in range(address_start, address_stop, 1):
-            _dat2, _dat3 = self.readRamAddress(dev, i)
-            data2.extend(_dat2)
-            data3.extend(_dat3)
+        if mode==4:
+            for i in range(address_start, address_stop, 1):
+                _dat0, _dat1 = self.readRamAddress(dev, i)
+                data0.extend(_dat0)
+                data1.extend(_dat1)
+        elif mode==8:
+            for i in range(address_start, address_stop, 1):
+                _dat0, _dat1 = self.readRamAddress(dev, i)
+                data0.extend(_dat0[:2])
+                data1.extend(_dat0[2:])
+                data2.extend(_dat1[:2])
+                data3.extend(_dat1[2:])
+                
+        self.write(dev, [65,0,0,2]) #read RAM 1 [ch's 2 & 3 / 4,5,6,7]
+        data4=[]
+        data5=[]
+        data6=[]
+        data7=[]
+        if mode==4:
+            for i in range(address_start, address_stop, 1):
+                _dat2, _dat3 = self.readRamAddress(dev, i)
+                data2.extend(_dat2)
+                data3.extend(_dat3)
+        elif mode==8:
+            for i in range(address_start, address_stop, 1):
+                _dat2, _dat3 = self.readRamAddress(dev, i)
+                data4.extend(_dat2[:2])
+                data5.extend(_dat2[2:])
+                data6.extend(_dat3[:2])
+                data7.extend(_dat3[2:])
                   
-        return data0, data1, data2, data3
+        return data0, data1, data2, data3, data4, data5, data6, data7
             
     def readRamAddress(self, dev, address, readback_address=False, verbose=False):
         data0=[]

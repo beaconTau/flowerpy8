@@ -52,7 +52,7 @@ def datValid(dev, en):
         dev.write(dev.DEV_FLOWER, [dev.map['DATVALID'], 0, 0, 0])
 
 def configADC(dev):
-    ###hard-coded setup for 2-ch operation
+    ###hard-coded setup for *4-ch operation
     ###-----------------------------------
     #initial sw reset of internal HMCAD registers
     spiWriteBothADCS(dev, HMCAD_ADR_RESET, 0x00, 0x01)
@@ -66,17 +66,21 @@ def configADC(dev):
     spiWriteBothADCS(dev, HMCAD_ADR_BYTE_FORMAT, 0x00, 0x08) #set MSB first
     spiWriteBothADCS(dev, HMCAD_ADR_VCM_DRIVE, 0x00, 0x30) #turn up VCM drive..
     spiWriteBothADCS(dev, HMCAD_ADR_LVDS_DRIVE, 0x05, 0x55) #set LVDS drive to RSDS standards
-    spiWriteBothADCS(dev, HMCAD_ADR_NUM_CHAN, 0x00, 0x02) #config to 2-chan operation, clkdivide=1
+    #spiWriteBothADCS(dev, HMCAD_ADR_NUM_CHAN, 0x00, 0x02) #config to 2-chan operation, clkdivide=1
+    spiWriteBothADCS(dev, HMCAD_ADR_NUM_CHAN, 0x00, 0x04) #config to 4-chan operation, clkdivide=1
     spiWriteBothADCS(dev, HMCAD_ADR_STARTUP, 0x00, 0x04) #configure start-up time according to datasheet
     adcGainSelect(dev, 0)
     #spiWriteBothADCS(dev, HMCAD_ADR_INVERT_INP, 0x00, 0x30) #invert inputs, 2ch mode
     adcPowerDown(dev, False) #startup!
     print ('starting up...')
     time.sleep(15)
-    #configure input cross-switch selection
-    spiWriteBothADCS(dev, HMCAD_ADR_INPUTSEL_0, 0x02, 0x02) #set IN1 to ADC1 and ADC2
-    #spiWriteBothADCS(dev, HMCAD_ADR_INPUTSEL_0, 0x08, 0x08) #set IN1 to ADC1 and ADC2    
-    spiWriteBothADCS(dev, HMCAD_ADR_INPUTSEL_1, 0x08, 0x08) #set IN3 to ADC3 and ADC4
+
+    ####configure input cross-switch selection
+    #spiWriteBothADCS(dev, HMCAD_ADR_INPUTSEL_0, 0x02, 0x02) #set IN1 to ADC1 and ADC2
+    #spiWriteBothADCS(dev, HMCAD_ADR_INPUTSEL_1, 0x08, 0x08) #set IN3 to ADC3 and ADC4
+    ## 4chan op:
+    spiWriteBothADCS(dev, HMCAD_ADR_INPUTSEL_0, 0x10, 0x08)
+    spiWriteBothADCS(dev, HMCAD_ADR_INPUTSEL_1, 0x04, 0x02)
 
     adcPowerDown(dev, True)
     adcPowerDown(dev, False)
@@ -133,7 +137,7 @@ def testPatternBitShift(dev):
     
     return bitshift_good, bitshift_val
         
-def pllConfig(filename='config/Si5338-RevB-Registers-472MHz.h'):
+def pllConfig(filename='config/Si5338-RevB-Registers-250MHz.h'):
     ## configure PLL (only needs done on board power cycle)
     ## PLL needs to be configured before ADC can be setup
     pll = pll_config.ClockConfig()
@@ -181,6 +185,6 @@ if __name__=='__main__':
     print ('tuning adc bitstream..')
     testPatternBitShift(dev)
     print ('aligning adc samples..')
-    align_adcs.do(dev)
+    align_adcs.do(dev, mode=8)
     print ('done')
     
