@@ -2,13 +2,13 @@ import i2c_bridge
 import time
 
 class ClockConfig:
-    def __init__(self):
+    def __init__(self, flower_dev=0):
         
-        self.i2c = i2c_bridge.I2CBridge()
+        self.i2c = i2c_bridge.I2CBridge(flower_dev)
         self.i2c.write(0xFF, 0x00) #set to page 0
         self.page = 0
 
-    def configure(self, filename='config/Si5338-Registers.h'):    
+    def configure(self, filename='config/Si5338-Registers-250MHz.h'):    
         #
         # config procedure for Si5338. A pain in the neck!
         #

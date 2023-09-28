@@ -26,12 +26,24 @@ class Flower():
         'DATVALID'      : 0x3A, #once ADCs are setup, this toggles Rx FIFOs
     }
         
-    def __init__(self, spi_clk_freq=10000000):
+    def __init__(self, spi_clk_freq=10000000, flower_dev=0):
+        '''
+        flower_dev is the device. 
+               -->flower_dev=0 for the 'classical' flower slot (on spidev<bus>.<device>=1.0)
+               -->flower_dev=1 for the flower in the 'radiant' slot (on spidev<bus>.<device>=0.0)
+        '''
+        #GPIO61 enables both SPI bus drivers
         if not os.path.isfile('/sys/class/gpio/gpio61/value'):
             GPIO.setup("P8_26", GPIO.OUT) #enable pin for 2.5V bus drivers
             GPIO.output("P8_26", GPIO.LOW)  #enable for 2.5V bus drivers
-        self.BUS_FLOWER = 1
-        self.DEV_FLOWER = 0 #these are confusing definitions, sorry to future self (BUS=BBB spi bus; DEV=enumeration)
+        if flower_dev==0:    
+            self.BUS_FLOWER = 1
+            #self.DEV_FLOWER = 0 #these are confusing definitions, sorry to future self (BUS=BBB spi bus; DEV=enumeration)
+        elif flower_dev==1:
+            self.BUS_FLOWER = 0
+            #self.DEV_FLOWER = 1
+        self.DEV_FLOWER=0 #just one instance per class for now
+            
         self.spi={}
         self.spi[0]=SPI.SPI(self.BUS_FLOWER,0)
         self.spi[0].mode = 0
@@ -89,7 +101,8 @@ class Flower():
         fw_info=[]
         
         firmware_version = self.readRegister(self.DEV_FLOWER, self.map['FIRMWARE_VER'])
-        firmware_version = [firmware_version[1], str((firmware_version[3] & 0xF0)>>4)+'.'+str(firmware_version[3]&0x0F)]
+        firmware_version = str(firmware_version[2])+'.'+\
+            str((firmware_version[3] & 0xF0)>>4)+'.'+str(firmware_version[3]&0x0F)
         print ('firmware version:', firmware_version)
         firmware_date = self.readRegister(self.DEV_FLOWER, self.map['FIRMWARE_DATE'])
         firmware_date = [(firmware_date[1])<<4 | (firmware_date[2] & 0xF0)>>4, firmware_date[2] & 0x0F, firmware_date[3]]
@@ -105,7 +118,7 @@ class Flower():
                     f.write(str(fw_info[i])+'\n')
             f.close()
                     
-                                                           
+        
     def boardInit(self, verbose=False):
         
         self.bufferClear()
@@ -129,13 +142,18 @@ class Flower():
     '''    
     def bufferClear(self, buf_clear_flag=1):
          self.write(self.DEV_FLOWER,[77,0,0,buf_clear_flag]) 
-                
-    def calPulser(self, enable=True, freq=0, readback=False):
+
+    def timestampReset(self):
+        self.write(self.DEV_FLOWER, [126,0,0,1])
+        
+    def calPulser(self, enable=True, freq=0, sync=False, readback=False):
         '''
         freq = 0, standard; freq = 1, rep rate lower by 8x
         '''
-        if enable:
-            self.write(self.DEV_FLOWER, [42,0, (0x1 & freq) ,3])
+        if enable and sync:
+            self.write(self.DEV_FLOWER, [42, 0x1, (0x1 & freq) ,3])
+        elif enable and not sync:
+            self.write(self.DEV_FLOWER, [42, 0x0, (0x1 & freq) ,3])
         else:
             self.write(self.DEV_FLOWER, [42,0,0,0])
         if readback:
@@ -148,24 +166,47 @@ class Flower():
         full_flag = self.readRegister(self.DEV_FLOWER, 0x7)[3] & 0x1
         return full_flag
         
-    def readRam(self, dev, address_start=0, address_stop=64):
-
-        self.write(dev, [65,0,0,1]) #read RAM 0 [ch's 0 & 1]
+    def readRam(self, dev, address_start=0, address_stop=64, mode=4):
+        '''
+        mode=num channels
+        '''
+        self.write(dev, [65,0,0,1]) #read RAM 0 [ch's 0 & 1 / 0,1,2,3]
         data0=[]
         data1=[]
-        for i in range(address_start, address_stop, 1):
-            _dat0, _dat1 = self.readRamAddress(dev, i)
-            data0.extend(_dat0)
-            data1.extend(_dat1)
-        self.write(dev, [65,0,0,2]) #read RAM 1 [ch's 2 & 3]
         data2=[]
         data3=[]
-        for i in range(address_start, address_stop, 1):
-            _dat2, _dat3 = self.readRamAddress(dev, i)
-            data2.extend(_dat2)
-            data3.extend(_dat3)
+        if mode==4:
+            for i in range(address_start, address_stop, 1):
+                _dat0, _dat1 = self.readRamAddress(dev, i)
+                data0.extend(_dat0)
+                data1.extend(_dat1)
+        elif mode==8:
+            for i in range(address_start, address_stop, 1):
+                _dat0, _dat1 = self.readRamAddress(dev, i)
+                data0.extend(_dat0[:2])
+                data1.extend(_dat0[2:])
+                data2.extend(_dat1[:2])
+                data3.extend(_dat1[2:])
+                
+        self.write(dev, [65,0,0,2]) #read RAM 1 [ch's 2 & 3 / 4,5,6,7]
+        data4=[]
+        data5=[]
+        data6=[]
+        data7=[]
+        if mode==4:
+            for i in range(address_start, address_stop, 1):
+                _dat2, _dat3 = self.readRamAddress(dev, i)
+                data2.extend(_dat2)
+                data3.extend(_dat3)
+        elif mode==8:
+            for i in range(address_start, address_stop, 1):
+                _dat2, _dat3 = self.readRamAddress(dev, i)
+                data4.extend(_dat2[:2])
+                data5.extend(_dat2[2:])
+                data6.extend(_dat3[:2])
+                data7.extend(_dat3[2:])
                   
-        return data0, data1, data2, data3
+        return data0, data1, data2, data3, data4, data5, data6, data7
             
     def readRamAddress(self, dev, address, readback_address=False, verbose=False):
         data0=[]
@@ -186,7 +227,8 @@ class Flower():
     
         
 if __name__=="__main__":
-    d=Flower()
+    d=Flower(flower_dev=1)
     #d.boardInit()
     d.identify(True)
-
+    d=Flower(flower_dev=0)
+    d.identify(True)

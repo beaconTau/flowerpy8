@@ -9,8 +9,8 @@ class I2CBridge():
         'I2C_DATA_REG'  : 0x22
         }
 
-    def __init__(self):
-        self.dev = flower.Flower()
+    def __init__(self, flower_dev=0):
+        self.dev = flower.Flower(flower_dev=flower_dev)
 
     def read(self, reg):
         #data to send
