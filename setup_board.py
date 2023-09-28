@@ -189,11 +189,3 @@ if __name__=='__main__':
         print ('aligning adc samples..')
         align_adcs.do(dev, mode=8)
         print ('done')
-    dev = flower.Flower()
-    boardStartup(dev)
-    print ('tuning adc bitstream..')
-    testPatternBitShift(dev)
-    print ('aligning adc samples..')
-    align_adcs.do(dev, mode=8)
-    print ('done')
-    
