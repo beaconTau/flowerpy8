@@ -45,7 +45,11 @@ if __name__ == '__main__':
         dev1.write(dev1.DEV_FLOWER, [0x63, 0x00, 0x00, 0x00]) #release slave
         #print(dev0.readRegister(dev0.DEV_FLOWER, 0x63),dev1.readRegister(dev1.DEV_FLOWER, 0x63))
         print(dev0.readRegister(dev0.DEV_FLOWER, 0x0A),dev1.readRegister(dev1.DEV_FLOWER, 0x0A))
+        print(dev0.readRegister(dev0.DEV_FLOWER, 0x0B),dev1.readRegister(dev1.DEV_FLOWER, 0x0B))
+        print(dev0.readRegister(dev0.DEV_FLOWER, 0x0C),dev1.readRegister(dev1.DEV_FLOWER, 0x0C))
         print(dev0.readRegister(dev0.DEV_FLOWER, 0x0D),dev1.readRegister(dev1.DEV_FLOWER, 0x0D))
+        print(dev0.readRegister(dev0.DEV_FLOWER, 0x0E),dev1.readRegister(dev1.DEV_FLOWER, 0x0E))
+        print(dev0.readRegister(dev0.DEV_FLOWER, 0x0F),dev1.readRegister(dev1.DEV_FLOWER, 0x0F))
         dat=[]
         start = time.time() 
         dat.extend(dev0.readRam(dev0.DEV_FLOWER, 0, 256, mode=8))
