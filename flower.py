@@ -9,7 +9,7 @@ import datetime
 
 class Flower():
     spi_bytes = 4  #transaction must include 4 bytes
-    firmware_registers_adr_max=128
+    firmware_registers_adr_max=256
     firmware_ram_adr_max=128
 
     map = {

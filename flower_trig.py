@@ -8,34 +8,33 @@ class FlowerTrig():
         'SCALER_READ_REG'        : 0x03,
         'SCALER_SEL_REG'         : 0x29,
         'SCALER_UPDATE_REG'      : 0x28,
-        'COINC_TRIG_CH0_THRESH'  : 0x57,
-        'COINC_TRIG_CH1_THRESH'  : 0x58,
-        'COINC_TRIG_CH2_THRESH'  : 0x59,
-        'COINC_TRIG_CH3_THRESH'  : 0x5A,
-        'COINC_TRIG_PARAM'       : 0x5B,
+        'COINC_TRIG_CH0_THRESH'  : 0x56,
+        'COINC_TRIG_CH1_THRESH'  : 0x57,
+        'COINC_TRIG_CH2_THRESH'  : 0x58,
+        'COINC_TRIG_CH3_THRESH'  : 0x59,
+        'COINC_TRIG_CH4_THRESH'  : 0x5a,
+        'COINC_TRIG_CH5_THRESH'  : 0x5b,
+        'COINC_TRIG_CH6_THRESH'  : 0x5c,
+        'COINC_TRIG_CH7_THRESH'  : 0x5d,
+        'COINC_TRIG_PARAM'       : 0x5f,
         'TRIG_ENABLES'           : 0x3D,
-        'PHASED_THRESHOLDS'	 : 0x81,
+        'PHASED_THRESHOLDS'	     : 0x80,
         'PHASED_MASKS_0'         : 0x50,
-        'PHASED_MASKS_1'         : 0x51,
-        'FAKE_SIG_ENABLE'        : 0x84
-
+        'PHASED_MASKS_1'         : 0x51
 
     }
 
     def __init__(self):
         self.dev = flower.Flower()
-    def enableFakeSig(self):
-        self.dev.write(self.dec.DEV_FLOWER,[self.map['FAKE_SIG_ENABLE'],1,0,0])
 
-    def initPhasedTrig(self,power_threshold,num_beams=42):
+    def initPhasedTrig(self,power_threshold,upper_mask=0xffffff, lower_mask=0xffffff, num_beams=42):
         for i in range(num_beams):
-            #idk the bit order. maybe bytes are reversed but bit's arent? idk
-            self.dev.write(self.dev.DEV_FLOWER,[self.map['PHASED_THRESHOLDS',power_threshold&0xff, power_threshold&0xf00>>4+power_threshold&0x00f,power_threshold&0xff0>>4])
-        self.dev.write(self.dev.DEV_FLOWER,[self.map['PHASED_MASKS_0',0xff,0xff,0xff])
-        self.dev.write(self.dev.DEV_FLOWER,[self.map['PHASED_MASKS_1',0xff,0xff,0xff])
+            #servo top 8, servo bottom 4 <<4 + trig top 4, trig bottom 8
+            self.dev.write(self.dev.DEV_FLOWER,[self.map['PHASED_THRESHOLDS']+i,(power_threshold&0xff0)>>4, ((power_threshold&0x00f)<<4)+((power_threshold&0xf00)>>8),power_threshold&0x0ff])
+        self.dev.write(self.dev.DEV_FLOWER,[self.map['PHASED_MASKS_LOWER'],(lower_mask&0xff0000)>>16,(lower_mask&0x00ff00)>>8,(lower_mask&0x0000ff)])
+        self.dev.write(self.dev.DEV_FLOWER,[self.map['PHASED_MASKS_UPPER'],(upper_mask&0xff0000)>>16,(upper_mask&0x00ff00)>>8,(upper_mask&0x0000ff)])
 
     def initCoincTrig(self, num_coinc, thresh, servo_thresh, vppmode=True, coinc_window=2):
-
         for i in range(4):
             self.dev.write(self.dev.DEV_FLOWER, [self.map['COINC_TRIG_CH0_THRESH']+i,0,servo_thresh[i], thresh[i]])
         self.dev.write(self.dev.DEV_FLOWER, [self.map['COINC_TRIG_PARAM'],
