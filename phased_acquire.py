@@ -16,8 +16,9 @@ if __name__ == '__main__':
     print (dev.checkBuffer()) #should return 0
 
     #setup trigger
-    trig.initCoincTrig(0, [10,10,10,10],[120,120,120,120], vppmode=1)
-    trig.trigEnable(coinc_trig=1)
+    trig.initPhasedTrig(0,10)
+    #trig.initCoincTrig(0, [10,10,10,10],[120,120,120,120], vppmode=1)
+    trig.trigEnable(phased_trig=1)
     
     while(not dev.checkBuffer() ):
         time.sleep(0.1)

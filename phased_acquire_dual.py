@@ -26,8 +26,8 @@ if __name__ == '__main__':
     
     dev0.bufferClear()
     dev1.bufferClear()
-    trig.initCoincTrig(1,[10,10,10,10,10,10,10,10],[100,100,100,100,100,100,100,100],vppmode=1)
-    trig.trigEnable(coinc_trig=1,phased_trig=0)
+    trig.initPhasedTrig(1500)
+    trig.trigEnable(coinc_trig=0,phased_trig=1)
     i=0
     while(i<50):
         time.sleep(0.1)

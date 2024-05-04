@@ -10,16 +10,14 @@ if __name__ == '__main__':
     dev = flower.Flower()
     dev.boardInit()
     trig = flower_trig.FlowerTrig()
-    setup.adcGainSelect(dev,0)
+    setup.adcGainSelect(dev,5)
 
     dev.bufferClear()
     print (dev.checkBuffer()) #should return 0
 
     #setup trigger
-    trig.initPhasedTrig(0,10)
-    trig.enableFakeSig()
-    #trig.initCoincTrig(0, [10,10,10,10],[120,120,120,120], vppmode=1)
-    trig.trigEnable(phased_trig=1)
+    trig.initCoincTrig(0, [10,10,10,10,10,10,10,10],[120,120,120,120,120,120,120,120], vppmode=1)
+    trig.trigEnable(coinc_trig=1)
     
     while(not dev.checkBuffer() ):
         time.sleep(0.1)

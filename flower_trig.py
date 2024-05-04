@@ -19,29 +19,29 @@ class FlowerTrig():
         'COINC_TRIG_PARAM'       : 0x5f,
         'TRIG_ENABLES'           : 0x3D,
         'PHASED_THRESHOLDS'	     : 0x80,
-        'PHASED_MASKS_0'         : 0x50,
-        'PHASED_MASKS_1'         : 0x51
+        'PHASED_MASK_LOWER'         : 0x50,
+        'PHASED_MASK_UPPER'         : 0x51
 
     }
 
     def __init__(self):
         self.dev = flower.Flower()
 
-    def initPhasedTrig(self,power_threshold,upper_mask=0xffffff, lower_mask=0xffffff, num_beams=42):
+    def initPhasedTrig(self,power_threshold,upper_mask=0xffffff, lower_mask=0xffffff, num_beams=24):
         for i in range(num_beams):
             #servo top 8, servo bottom 4 <<4 + trig top 4, trig bottom 8
             self.dev.write(self.dev.DEV_FLOWER,[self.map['PHASED_THRESHOLDS']+i,(power_threshold&0xff0)>>4, ((power_threshold&0x00f)<<4)+((power_threshold&0xf00)>>8),power_threshold&0x0ff])
-        self.dev.write(self.dev.DEV_FLOWER,[self.map['PHASED_MASKS_LOWER'],(lower_mask&0xff0000)>>16,(lower_mask&0x00ff00)>>8,(lower_mask&0x0000ff)])
-        self.dev.write(self.dev.DEV_FLOWER,[self.map['PHASED_MASKS_UPPER'],(upper_mask&0xff0000)>>16,(upper_mask&0x00ff00)>>8,(upper_mask&0x0000ff)])
+        self.dev.write(self.dev.DEV_FLOWER,[self.map['PHASED_MASK_LOWER'],(lower_mask&0xff0000)>>16,(lower_mask&0x00ff00)>>8,(lower_mask&0x0000ff)])
+        self.dev.write(self.dev.DEV_FLOWER,[self.map['PHASED_MASK_UPPER'],(upper_mask&0xff0000)>>16,(upper_mask&0x00ff00)>>8,(upper_mask&0x0000ff)])
 
     def initCoincTrig(self, num_coinc, thresh, servo_thresh, vppmode=True, coinc_window=2):
-        for i in range(4):
+        for i in range(8):
             self.dev.write(self.dev.DEV_FLOWER, [self.map['COINC_TRIG_CH0_THRESH']+i,0,servo_thresh[i], thresh[i]])
         self.dev.write(self.dev.DEV_FLOWER, [self.map['COINC_TRIG_PARAM'],
                                              vppmode,coinc_window, num_coinc])
 
     def setScalerOut(self, scaler_adr=0):
-        if scaler_adr < 0 or scaler_adr > 63:
+        if scaler_adr < 0 or scaler_adr > 128:
             return None
         self.dev.write(self.dev.DEV_FLOWER, [self.map['SCALER_SEL_REG'],0,0,scaler_adr])
         #print self.dev.readRegister(self.dev.DEV_FLOWER, 41)
@@ -56,5 +56,5 @@ class FlowerTrig():
     def trigEnable(self, coinc_trig=0, pps_trig=0, ext_trig=0, phased_trig=0):
         '''specify '0' or '1' for trigger types
         '''
-        self.dev.write(self.dev.DEV_FLOWER, [self.map['TRIG_ENABLES'],ext_trig, phased_trig<<1+coinc_trig, pps_trig])
+        self.dev.write(self.dev.DEV_FLOWER, [self.map['TRIG_ENABLES'],ext_trig, (phased_trig<<1)+coinc_trig, pps_trig])
 
