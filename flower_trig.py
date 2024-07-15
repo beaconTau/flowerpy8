@@ -1,7 +1,7 @@
 # trigger control for FLOWER board.
 
 import flower
-
+import time
 class FlowerTrig():
     
     map = {
@@ -18,28 +18,29 @@ class FlowerTrig():
         'COINC_TRIG_CH7_THRESH'  : 0x5d,
         'COINC_TRIG_PARAM'       : 0x5f,
         'TRIG_ENABLES'           : 0x3D,
-        'PHASED_THRESHOLDS'	     : 0x80,
-        'PHASED_MASK_LOWER'         : 0x50,
-        'PHASED_MASK_UPPER'         : 0x51
+        'PHASED_THRESHOLDS'	 : 0x80,
+        'PHASED_MASK_LOWER'      : 0x50,
+        'PHASED_MASK_UPPER'      : 0x51,
+        'COINC_CHANNEL_MASK'     : 0x62
 
     }
 
     def __init__(self):
         self.dev = flower.Flower()
 
-    def initPhasedTrig(self,power_threshold,upper_mask=0xffffff, lower_mask=0xffffff, num_beams=24):
+    def initPhasedTrig(self,power_threshold,upper_mask=0xffffff, lower_mask=0xffffff, num_beams=20):
         for i in range(num_beams):
             #servo top 8, servo bottom 4 <<4 + trig top 4, trig bottom 8
-            self.dev.write(self.dev.DEV_FLOWER,[self.map['PHASED_THRESHOLDS']+i,(power_threshold&0xff0)>>4, ((power_threshold&0x00f)<<4)+((power_threshold&0xf00)>>8),power_threshold&0x0ff])
+            #self.dev.write(self.dev.DEV_FLOWER,[self.map['PHASED_THRESHOLDS']+i,(power_threshold&0xff0)>>4, ((power_threshold&0x00f)<<4)+((power_threshold&0xf00)>>8),power_threshold&0x0ff])
+            self.dev.write(self.dev.DEV_FLOWER,[self.map['PHASED_THRESHOLDS']+i,0xff,(0xf<<4)+((power_threshold&0xf00)>>8),power_threshold&0xff])
         self.dev.write(self.dev.DEV_FLOWER,[self.map['PHASED_MASK_LOWER'],(lower_mask&0xff0000)>>16,(lower_mask&0x00ff00)>>8,(lower_mask&0x0000ff)])
         self.dev.write(self.dev.DEV_FLOWER,[self.map['PHASED_MASK_UPPER'],(upper_mask&0xff0000)>>16,(upper_mask&0x00ff00)>>8,(upper_mask&0x0000ff)])
 
-    def initCoincTrig(self, num_coinc, thresh, servo_thresh, vppmode=True, coinc_window=2):
+    def initCoincTrig(self, num_coinc, thresh, servo_thresh, vppmode=True, coinc_window=2,mask=0xff):
         for i in range(8):
             self.dev.write(self.dev.DEV_FLOWER, [self.map['COINC_TRIG_CH0_THRESH']+i,0,servo_thresh[i], thresh[i]])
-        self.dev.write(self.dev.DEV_FLOWER, [self.map['COINC_TRIG_PARAM'],
-                                             vppmode,coinc_window, num_coinc])
-
+        self.dev.write(self.dev.DEV_FLOWER, [self.map['COINC_TRIG_PARAM'],vppmode,coinc_window, num_coinc])
+        self.dev.write(self.dev.DEV_FLOWER,[self.map['COINC_CHANNEL_MASK'],0,0,0xff&mask])
     def setScalerOut(self, scaler_adr=0):
         if scaler_adr < 0 or scaler_adr > 128:
             return None

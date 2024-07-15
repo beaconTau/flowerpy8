@@ -124,7 +124,7 @@ def testPatternBitShift(dev):
         dev.bufferClear()
         dev.softwareTrigger()
         dat = dev.readRam(dev.DEV_FLOWER, 0, 16)
-        if (dat[2][0] != FLOWER_TEST_PAT_1) and (dat[2][0] != FLOWER_TEST_PAT_2):
+        if (dat[4][0] != FLOWER_TEST_PAT_1) and (dat[4][0] != FLOWER_TEST_PAT_2):
             #increment the bitshift
             reg = dev.readRegister(dev.DEV_FLOWER, 0x42)
             dev.write(dev.DEV_FLOWER, [0x42, 0x00, bitshift_val, reg[3]])
