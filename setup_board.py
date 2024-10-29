@@ -107,7 +107,7 @@ def testPatternBitShift(dev):
     while(not bitshift_good and bitshift_val < 8):
         dev.bufferClear()
         dev.softwareTrigger()
-        dat = dev.readRam(dev.DEV_FLOWER, 0, 16)
+        dat = dev.readRam(dev.DEV_FLOWER, 0, 16,mode=8)
         if (dat[0][0] != FLOWER_TEST_PAT_1) and (dat[0][0] != FLOWER_TEST_PAT_2):
             #increment the bitshift
             reg = dev.readRegister(dev.DEV_FLOWER, 0x42)
@@ -123,7 +123,7 @@ def testPatternBitShift(dev):
     while(not bitshift_good and bitshift_val < 8):
         dev.bufferClear()
         dev.softwareTrigger()
-        dat = dev.readRam(dev.DEV_FLOWER, 0, 16)
+        dat = dev.readRam(dev.DEV_FLOWER, 0, 16,mode=8)
         if (dat[4][0] != FLOWER_TEST_PAT_1) and (dat[4][0] != FLOWER_TEST_PAT_2):
             #increment the bitshift
             reg = dev.readRegister(dev.DEV_FLOWER, 0x42)

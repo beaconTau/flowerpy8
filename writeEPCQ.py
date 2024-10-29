@@ -8,12 +8,12 @@ import time
 import reconfigureFPGA as reconfig
 import tools.bf as bf
 
-directory = '/home/rno-g/flowerpy/firmware/'
+directory = '/home/beacon/flowerpy8/firmware/'
 
-filename = directory+'fw_0p7.rpd'
+filename = directory+'fw_beacon_terra_17_0_3.rpd'
 
 FILEMAP_START_ADDR = 0x00000000
-FILEMAP_END_ADDR   = 0x00180D59 #this value needs to be updated for each new firmware version
+FILEMAP_END_ADDR   = 0x001F9A87 #this value needs to be updated for each new firmware version
 TARGET_START_ADDR  = 0x00200000 #address where application firmware image is stored - STATIC, DO NOT CHANGE!!
 
 def setMode(dev, bus, mode):
@@ -224,23 +224,23 @@ def writeFirmwareToEPCQ(dev, bus, filename, FILEMAP_START_ADDR, FILEMAP_END_ADDR
 if __name__=='__main__':
     import sys
     
-    
-    dev=flower.Flower()
-    bus = dev.DEV_FLOWER
+    for i in range(2):
+        dev=flower.Flower(flower_dev=i)
+        bus = dev.DEV_FLOWER
    
-    print ('\n RUNNING REMOTE FIRMWARE IMAGE UPDATE ')
-    reconfig.enableRemoteFirmwareBlock(dev, bus, False)
-    reconfig.enableRemoteFirmwareBlock(dev, bus, True)
-    print ('\n***************************\n')
-    clearApplicationImage(dev, bus, TARGET_START_ADDR, FILEMAP_END_ADDR)
-    #dat = readEPCQBlock(dev, bus, TARGET_START_ADDR)
-    #for i in range(len(dat)):
-    #    if dat[i] != 0xFF:
-    #        print 'clear error', i, dat[i]
-    print ('\n***************************\n')
-    time.sleep(1)
-    writeFirmwareToEPCQ(dev,bus,filename,FILEMAP_START_ADDR, FILEMAP_END_ADDR)
-    reconfig.enableRemoteFirmwareBlock(dev,bus,False)
-    print ('***************************\n')
-    print ('seemed to process successfully')
+        print ('\n RUNNING REMOTE FIRMWARE IMAGE UPDATE ')
+        reconfig.enableRemoteFirmwareBlock(dev, bus, False)
+        reconfig.enableRemoteFirmwareBlock(dev, bus, True)
+        print ('\n***************************\n')
+        clearApplicationImage(dev, bus, TARGET_START_ADDR, FILEMAP_END_ADDR)
+        #dat = readEPCQBlock(dev, bus, TARGET_START_ADDR)
+        #for i in range(len(dat)):
+        #    if dat[i] != 0xFF:
+        #        print 'clear error', i, dat[i]
+        print ('\n***************************\n')
+        time.sleep(1)
+        writeFirmwareToEPCQ(dev,bus,filename,FILEMAP_START_ADDR, FILEMAP_END_ADDR)
+        reconfig.enableRemoteFirmwareBlock(dev,bus,False)
+        print ('***************************\n')
+        print ('seemed to process successfully')
     

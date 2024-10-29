@@ -124,33 +124,34 @@ if __name__=='__main__':
     parser.add_option("-a", "--application", action="store_const", dest="application", const=True)
     (options, args) = parser.parse_args()
 
-    if options.application:
-        AnF = 1
-        epcq_address = 0x00200000
-        print ('-------------------------------')
-        print ('loading application firmware...')
-        print ('-------------------------------')
-    else:
-        AnF = 0
-        epcq_address = 0x00000000
-        print ('-------------------------------')
-        print ('loading factory firmware...')
-        print ('-------------------------------')
+    for i in range(2):
+        if options.application:
+            AnF = 1
+            epcq_address = 0x00200000
+            print ('-------------------------------')
+            print ('loading application firmware...')
+            print ('-------------------------------')
+        else:
+            AnF = 0
+            epcq_address = 0x00000000
+            print ('-------------------------------')
+            print ('loading factory firmware...')
+            print ('-------------------------------')
 
-    dev=flower.Flower()
-    enableRemoteFirmwareBlock(dev, dev.DEV_FLOWER, False)
-    enableRemoteFirmwareBlock(dev, dev.DEV_FLOWER, True)
-    retval=reconfigure(dev, dev.DEV_FLOWER, AnF=AnF, epcq_address=epcq_address)
-    print ('-------------')
-    print ('reprogramming firmware...')
-    print ('-------------')
-    time.sleep(30)
-    enableRemoteFirmwareBlock(dev, dev.DEV_FLOWER, False)  #need to disable/re-enable remote blocks to get
-    enableRemoteFirmwareBlock(dev, dev.DEV_FLOWER, True)   #updated trig configuration status
-    retval=readTrigCondition(dev, dev.DEV_FLOWER)
-    enableRemoteFirmwareBlock(dev, dev.DEV_FLOWER, False)
-    time.sleep(5)
-    dev.identify()
-    time.sleep(1)
+        dev=flower.Flower(flower_dev=i)
+        enableRemoteFirmwareBlock(dev, dev.DEV_FLOWER, False)
+        enableRemoteFirmwareBlock(dev, dev.DEV_FLOWER, True)
+        retval=reconfigure(dev, dev.DEV_FLOWER, AnF=AnF, epcq_address=epcq_address)
+        print ('-------------')
+        print ('reprogramming firmware...')
+        print ('-------------')
+        time.sleep(30)
+        enableRemoteFirmwareBlock(dev, dev.DEV_FLOWER, False)  #need to disable/re-enable remote blocks to get
+        enableRemoteFirmwareBlock(dev, dev.DEV_FLOWER, True)   #updated trig configuration status
+        retval=readTrigCondition(dev, dev.DEV_FLOWER)
+        enableRemoteFirmwareBlock(dev, dev.DEV_FLOWER, False)
+        time.sleep(5)
+        dev.identify()
+        time.sleep(1)
 
-    sys.exit(retval)  #return 0 if successful (verify by reading back firmware version/date)
+    #sys.exit(retval)  #return 0 if successful (verify by reading back firmware version/date)

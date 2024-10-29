@@ -5,16 +5,16 @@ import numpy
 ADC0_SAMPLE_SHIFT_REG = 0x38
 ADC1_SAMPLE_SHIFT_REG = 0x39
 
-def acquire(dev, mode=4):
+def acquire(dev, mode=8):
     '''
     mode= num_chans
     '''
     dev.bufferClear()
     dev.softwareTrigger()
-    dat = dev.readRam(dev.DEV_FLOWER, 0, 128, mode)
+    dat = dev.readRam(dev.DEV_FLOWER, 0, 128, mode=mode)
     return dat
 
-def getPeaks(dat, mode=4):
+def getPeaks(dat, mode=8):
     '''
     mode= num_chans
     '''
@@ -23,8 +23,9 @@ def getPeaks(dat, mode=4):
         peak1 = dat[2].index(min(dat[2]))
     elif mode==8:
         peak1 = dat[4].index(min(dat[4]))
+    print(peak0,peak1)
     #some conditions:
-    if min(dat[0]) > 115 or min(dat[2]) > 115:
+    if min(dat[0]) > 115 or min(dat[4]) > 115:
         return None
     elif peak0 < 10 or peak0 > 500 or peak1 < 10 or peak1 > 500:
         return None
@@ -43,8 +44,7 @@ def align(dev, num_tries=20, mode=8):
     
         if peaks is not None:
             diff = peaks[1] - peaks[0] #get difference
-            if tries == 1:
-                print ('adc sample diff is', diff)
+            print ('adc sample diff is', diff)
             if diff == 0: return 0 #aligned!
             elif diff == 1: #adc1 slower by 1 sample
                 dev.write(dev.DEV_FLOWER, [ADC1_SAMPLE_SHIFT_REG, 0, 0, 0x01])
